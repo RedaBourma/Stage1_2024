@@ -48,7 +48,6 @@ const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
     console.log("Processing file:", file);
-    // Accept images only
     if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/)) {
       return cb(new Error("Only image files are allowed!"), false);
     }
@@ -57,8 +56,6 @@ const upload = multer({
 });
 
 const mysql = require("mysql");
-// const { error } = require("console");
-// const { truncateSync } = require("fs");
 const connection = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -75,13 +72,6 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 adminServer.post("/admin/api/articles", upload.single("image"), (req, res) => {
-  // upload.single("articleImage")(req, res, (err) =>{
-  //   if(err instanceof multer.MulterError){
-  //     return res.status(500).json({message: "Multer error", error: err});
-  //   } else if (err) {
-  //     return res.status(500).json({message: "An error occured", error: err});
-  //   }
-  // })
 
   const { RefArticle, nomArticle, CatArticle, description, prix, quantite } =
     req.body;
@@ -232,7 +222,6 @@ server.post("/api/checkout", async (req, res) => {
   console.log("Utilisateur ID:", utilisateurId);
 
   try {
-    // Start transaction
     await new Promise((resolve, reject) => {
       connection.beginTransaction((err) => {
         if (err) reject(err);
@@ -267,7 +256,7 @@ server.post("/api/checkout", async (req, res) => {
         item.id,
         "with quantity:",
         item.quantity
-      ); // Log for debugging
+      );
       await new Promise((resolve, reject) => {
         connection.query(
           updateStockQuery,
@@ -295,7 +284,6 @@ server.post("/api/checkout", async (req, res) => {
       });
     });
 
-    // Send success response
     res
       .status(200)
       .json({ message: "Commande validée et stock mis à jour avec succès." });
@@ -310,47 +298,12 @@ server.post("/api/checkout", async (req, res) => {
   }
 });
 
-// server.post("/api/checkout", async (req, res) => {
-//   const cart = req.body;
 
-//   try {
-//     const updatePromises = cart.map(async (item) => {
-//       const query = "UPDATE Articles SET quantite = quantite - ? WHERE id = ?";
-//       return new Promise((resolve, reject) => {
-//         connection.query(query, [item.quantity, item.id], (err, result) => {
-//           if (err) {
-//             console.error("Erreur SQL:", err);
-//             return reject(new Error("Erreur lors de la mise à jour du stock."));
-//           } else if (result.affectedRows === 0) {
-//             return reject(
-//               new Error(`Stock insuffisant pour le produit: ${item.nom}`)
-//             );
-//           }
-//           resolve();
-//         });
-//       });
-//     });
-
-//     await Promise.all(updatePromises);
-//     res
-//       .status(200)
-//       .json({ message: "Commande validée et stock mis à jour avec succès." });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
-
-// server.get("/", (req, res) => {
-//   res.redirect("/login");
-// });
 
 server.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/login/login.html"));
 });
 
-// server.get("/register", (req, res) => {
-//   res.sendFile(path.join(__dirname, "../public/login/register.html"));
-// });
 
 server.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/login/login.html"));
